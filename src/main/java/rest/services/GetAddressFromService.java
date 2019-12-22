@@ -9,11 +9,14 @@ import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import rest.entity.Address;
 import rest.errorHandler.RestTemplateResponseErrorHandler;
+import rest.errors.AddressNotExistException;
+
+import java.util.Objects;
 
 @Service
 public class GetAddressFromService {
 
-    private Address address;
+    private RestTemplate restTemplate;
 
     @Bean
     public ResponseErrorHandler responseErrorHandler() {
@@ -22,29 +25,17 @@ public class GetAddressFromService {
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return builder
+        restTemplate = builder
                 .errorHandler(responseErrorHandler())
                 .build();
+        return restTemplate;
     }
 
-    @Bean
-    public CommandLineRunner run(RestTemplate restTemplate) throws Exception {
-        return args -> {
-            try {
-                ResponseEntity<Address> result = restTemplate.getForEntity("http://localhost:8080/address/id/3", Address.class);
-                Address add = result.getBody();
-                System.out.println(add);
-                address = add;
-
-//                LOG.info("We are on course: {}", course.getTitle());
-            } catch (IllegalArgumentException ex) {
-//                LOG.error("Error while consuming: {}", ex.getMessage());
-            }
-
-        };
-    }
-
-    public Address getAddress() {
-        return address;
+    public Address getAddress(long id) {
+        ResponseEntity<Address> result = restTemplate.getForEntity("http://localhost:8080/address/id/" + id, Address.class);
+        if(Objects.isNull(result.getBody())){
+            throw new AddressNotExistException("This address does not exist!");
+        }
+        return result.getBody();
     }
 }

@@ -5,6 +5,7 @@ public class AddressNotExistException extends RuntimeException {
     public AddressNotExistException() {
         super();
     }
+
     public AddressNotExistException(String message) {
         super(message);
     }
